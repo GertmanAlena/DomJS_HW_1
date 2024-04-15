@@ -48,33 +48,33 @@ const usersOfClasses = [
 if (!localStorage.getItem(timetableKey)) {
     localStorage.setItem(timetableKey, JSON.stringify(timetableOfClasses));
 }
-const schedules = getLsClass();
-const users = getLsUser();
 
-function updateTable(nameRegistration) {
-    console.log(nameRegistration);
-    users.forEach(user => {
-        console.log(user.name);
-        if (user.name === nameRegistration) {
-            console.log(`${user.name} === ${nameRegistration}`);
-            schedules.forEach((schedule) => {
-                console.log(schedule);
-                if (schedule.name === user.nameLesson) {
-                    const btns = document.querySelectorAll('.signUpBtn');
-                    for (const btn of btns) {
-                        if (Number(btn.id) === schedule.id) {
-                            btn.disabled = true;
-                        }
-                    }
-                }
-            });
+function updateTable(users, nameRegistration) {
+    if(!users){
+        alert("Список пользователей пуст");
+    }
+    else {
+        users.forEach(user => {
+            if (user.name === nameRegistration) {
+                const schedule = searchSchedule(user.nameLesson);
+            }
+        });
+        
+        
 
-        }
-    });
+    }
 }
-function createTable(tbodyTableEl) {
+function searchSchedule(nameLesson) {
+    const schedules = getLsClass();
     schedules.forEach((schedule) => {
-        tbodyTableEl.insertAdjacentHTML('beforeend', getScheduleHtml(schedule));
+        if (schedule.name === nameLesson) {
+            const btns = document.querySelectorAll('.signUpBtn');
+            for (const btn of btns) {
+                if (Number(btn.id) === schedule.id) {
+                    btn.disabled = true;
+                }
+            }
+        }
     });
 }
 function saveClassSchedule(schedule) {
@@ -106,30 +106,14 @@ function saveDeleteClass(className, nameUser) {
     const users = getLsUser();
     for (let i = 0; i < users.length; i++) {
         if (users[i].name === nameUser && className === users[i].nameLesson) {
-            console.log(users[i]);
             users.splice(i, 1);
             localStorage.setItem(userKey, JSON.stringify(users));
             break;
         }
     }
 }
-
 function getLsUser() {
     return JSON.parse(localStorage.getItem(userKey));
 }
-function getScheduleHtml(schedule) {
-    return `
-    <tr class="table-row">
-        <td class="td-name">${schedule.name}</td>
-        <td class="td-time">${schedule.time}</td>
-        <td class="td-maxParticipants">${schedule.maxParticipants}</td>
-        <td class="td-currentParticipants">${schedule.currentParticipants}</td>
-        <td class="td-table">
-            <button class="signUpBtn"id="${schedule.id}">записаться</button>
-            <button class="cancelBtn"id="${schedule.id}">отменить запись</button>
-        </td>
-    </tr>
-    `;
-}
 
-export { getLsClass, getScheduleHtml, createTable, saveClassSchedule, searchUser, saveClass, saveDeleteClass, getLsUser, updateTable };
+export { getLsClass, saveClassSchedule, searchUser, saveClass, saveDeleteClass, getLsUser, updateTable };

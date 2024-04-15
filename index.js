@@ -1,13 +1,18 @@
-import { getLsClass, createTable, saveClassSchedule, searchUser, saveClass, saveDeleteClass, updateTable } from './storage.js';
+import { getLsClass, saveClassSchedule, searchUser, saveClass, saveDeleteClass, updateTable, getLsUser } from './storage.js';
 
 const contentEl = document.querySelector('.content');
 const tbodyTableEl = document.querySelector('.tbody-table');
-const signUpBtnEl = document.querySelector('.signUpBtn');
-const cancelBtnEl = document.querySelector('.cancelBtn');
 
 var nameRegistration = location.search.substring(1).split('=').pop();
-createTable(tbodyTableEl);
-updateTable(nameRegistration);
+
+
+const schedules = getLsClass();
+const users = getLsUser();
+
+schedules.forEach((schedule) => {
+    tbodyTableEl.insertAdjacentHTML('beforeend', getScheduleHtml(schedule));
+});
+updateTable(users, nameRegistration);
 
 contentEl.addEventListener('click', ({ target }) => {
     if (target.closest('.signUpBtn')) {
@@ -25,7 +30,6 @@ contentEl.addEventListener('click', ({ target }) => {
         const user = new User(nameRegistration, editingClass.name);
         if (searchUser(user)) {
             if (editingClass.currentParticipants <= editingClass.maxParticipants) {
-
                 rowEl.querySelector('.td-currentParticipants').textContent = current;
                 editingClass.currentParticipants = current;
                 saveClassSchedule(schedules);
@@ -40,6 +44,7 @@ contentEl.addEventListener('click', ({ target }) => {
             }
             alert(`${nameRegistration} Вы записались на занятие`);
             target.closest('.signUpBtn').setAttribute('disabled', '');
+            // target.closest('.cancelBtn').setAttribute('disabled', '');
         }
         target.closest('.signUpBtn').setAttribute('disabled', '');
     }
@@ -58,21 +63,34 @@ contentEl.addEventListener('click', ({ target }) => {
         saveClassSchedule(schedules);
         saveDeleteClass(editingClass.name, nameRegistration);
         alert(`${nameRegistration} Вы отменили запись на занятие`);
-        deactivBtn(target.closest('.cancelBtn').id);
         target.closest('.cancelBtn').setAttribute('disabled', '');
+        deactivBtn(target.closest('.cancelBtn').id);
     }
 });
 
 function deactivBtn(id) {
-    const btn = document.querySelector('.cancelBtn');
-    console.log(btn);
-    btn.setAttribute('disabled', '');
+    // const btn = document.querySelector('.cancelBtn');
+    // btn.setAttribute('disabled', '');
     const buttonAdd = document.querySelectorAll('.signUpBtn');
     buttonAdd.forEach(button => {
         if (button.id === id) {
             button.disabled = false;
         }
     });
+}
+function getScheduleHtml(schedule) {
+    return `
+    <tr class="table-row">
+        <td class="td-name">${schedule.name}</td>
+        <td class="td-time">${schedule.time}</td>
+        <td class="td-maxParticipants">${schedule.maxParticipants}</td>
+        <td class="td-currentParticipants">${schedule.currentParticipants}</td>
+        <td class="td-table">
+            <button class="signUpBtn"id="${schedule.id}">записаться</button>
+            <button class="cancelBtn"id="${schedule.id}">отменить запись</button>
+        </td>
+    </tr>
+    `;
 }
 class User {
     constructor(name, nameLesson) {
